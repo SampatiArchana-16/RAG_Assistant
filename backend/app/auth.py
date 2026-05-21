@@ -62,7 +62,7 @@ def register(
 
         # HASH PASSWORD
         hashed_password = pwd_context.hash(
-            user.password
+            user.password[:72]
         )
 
         # CREATE USER
@@ -114,7 +114,7 @@ def login(
         )
 
     if not pwd_context.verify(
-        user.password,
+        user.password[:72],
         db_user.password
     ):
 
