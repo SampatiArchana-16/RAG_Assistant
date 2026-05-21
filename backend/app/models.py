@@ -17,11 +17,13 @@ class User(Base):
         index=True
     )
 
-    username = Column(String)
-
     email = Column(
         String,
-        unique=True
+        unique=True,
+        nullable=False
     )
 
-    password = Column(String)
+    password = Column(
+        String,
+        nullable=False
+    )

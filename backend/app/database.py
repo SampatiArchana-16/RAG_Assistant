@@ -1,14 +1,18 @@
 from sqlalchemy import create_engine
 
-from sqlalchemy.ext.declarative import declarative_base
-
-from sqlalchemy.orm import sessionmaker
-
-DATABASE_URL = (
-    "postgresql://postgres:1234@localhost/react_auth_db"
+from sqlalchemy.orm import (
+    declarative_base,
+    sessionmaker
 )
 
-engine = create_engine(DATABASE_URL)
+DATABASE_URL = (
+    "postgresql://postgres:1234@localhost:5432/react_auth_db"
+)
+
+engine = create_engine(
+    DATABASE_URL,
+    echo=True
+)
 
 SessionLocal = sessionmaker(
     autocommit=False,

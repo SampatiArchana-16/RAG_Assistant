@@ -18,7 +18,8 @@ from app.schemas import (
 )
 
 router = APIRouter(
-    prefix="/auth"
+    prefix="/auth",
+    tags=["Auth"]
 )
 
 pwd_context = CryptContext(
@@ -38,44 +39,63 @@ def get_db():
         db.close()
 
 
+# REGISTER
 @router.post("/register")
 def register(
     user: RegisterSchema,
     db: Session = Depends(get_db)
 ):
 
-    existing_user = db.query(User).filter(
-        User.email == user.email
-    ).first()
+    try:
 
-    if existing_user:
+        # CHECK EXISTING EMAIL
+        existing_user = db.query(User).filter(
+            User.email == user.email
+        ).first()
 
-        raise HTTPException(
-            status_code=400,
-            detail="Email already exists"
+        if existing_user:
+
+            raise HTTPException(
+                status_code=400,
+                detail="Email already exists"
+            )
+
+        # HASH PASSWORD
+        hashed_password = pwd_context.hash(
+            user.password
         )
 
-    hashed_password = pwd_context.hash(
-        user.password
-    )
+        # CREATE USER
+        new_user = User(
+            email=user.email,
+            password=hashed_password
+        )
 
-    new_user = User(
-        username=user.username,
-        email=user.email,
-        password=hashed_password
-    )
+        # SAVE USER
+        db.add(new_user)
 
-    db.add(new_user)
+        db.commit()
 
-    db.commit()
+        db.refresh(new_user)
 
-    db.refresh(new_user)
+        print("USER SAVED SUCCESSFULLY")
 
-    return {
-        "message":
-        "Registration Successful"
-    }
+        return {
+            "message":
+            "Registration Successful"
+        }
 
+    except Exception as e:
+
+        print("REGISTER ERROR:", e)
+
+        raise HTTPException(
+            status_code=500,
+            detail=str(e)
+        )
+
+
+# LOGIN
 @router.post("/login")
 def login(
     user: LoginSchema,
@@ -89,8 +109,8 @@ def login(
     if not db_user:
 
         raise HTTPException(
-            status_code=401,
-            detail="Invalid Email or Password"
+            status_code=400,
+            detail="Invalid Email"
         )
 
     if not pwd_context.verify(
@@ -99,8 +119,8 @@ def login(
     ):
 
         raise HTTPException(
-            status_code=401,
-            detail="Invalid Email or Password"
+            status_code=400,
+            detail="Invalid Password"
         )
 
     return {
