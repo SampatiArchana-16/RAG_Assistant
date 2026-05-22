@@ -7,58 +7,47 @@ from fastapi import (
 
 import shutil
 
-import os
-
 from app.rag import (
     process_pdf,
-    search_answer
+    ask_question
 )
 
-router = APIRouter(
-    prefix="/chat"
-)
+router = APIRouter()
 
 
-@router.post("/ask")
-async def ask_question(
-    pdf: UploadFile = File(...),
+@router.post("/chat")
+async def chat_with_pdf(
+
+    file: UploadFile = File(...),
+
     question: str = Form(...)
 ):
 
     try:
 
-        os.makedirs(
-            "uploads",
-            exist_ok=True
-        )
+        # SAVE FILE
+        file_location = f"temp_{file.filename}"
 
-        file_path = f"uploads/{pdf.filename}"
-
-        with open(
-            file_path,
-            "wb"
-        ) as buffer:
+        with open(file_location, "wb") as buffer:
 
             shutil.copyfileobj(
-                pdf.file,
+                file.file,
                 buffer
             )
 
-        index, chunks = process_pdf(
-            file_path
-        )
+        # PROCESS PDF
+        process_pdf(file_location)
 
-        answer = search_answer(
-            question,
-            index,
-            chunks
-        )
+        # GET ANSWER
+        answer = ask_question(question)
 
         return {
             "answer": answer
         }
 
     except Exception as e:
+
+        print("CHAT ERROR:", str(e))
 
         return {
             "answer": str(e)

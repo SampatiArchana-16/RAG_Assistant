@@ -1,8 +1,4 @@
-from fastapi import (
-    APIRouter,
-    Depends,
-    HTTPException
-)
+from fastapi import APIRouter, Depends, HTTPException
 
 from sqlalchemy.orm import Session
 
@@ -17,16 +13,26 @@ from app.schemas import (
     LoginSchema
 )
 
+
 router = APIRouter(
     prefix="/auth",
-    tags=["Auth"]
+    tags=["Authentication"]
 )
+
+
+# =========================
+# PASSWORD HASH
+# =========================
 
 pwd_context = CryptContext(
     schemes=["bcrypt"],
     deprecated="auto"
 )
 
+
+# =========================
+# DATABASE
+# =========================
 
 def get_db():
 
@@ -39,7 +45,10 @@ def get_db():
         db.close()
 
 
+# =========================
 # REGISTER
+# =========================
+
 @router.post("/register")
 def register(
     user: RegisterSchema,
@@ -60,25 +69,27 @@ def register(
                 detail="Email already exists"
             )
 
+        # LIMIT PASSWORD LENGTH
+        password = user.password[:72]
+
         # HASH PASSWORD
         hashed_password = pwd_context.hash(
-            user.password[:72]
+            password
         )
 
         # CREATE USER
         new_user = User(
+
             email=user.email,
+
             password=hashed_password
         )
 
-        # SAVE USER
         db.add(new_user)
 
         db.commit()
 
         db.refresh(new_user)
-
-        print("USER SAVED SUCCESSFULLY")
 
         return {
             "message":
@@ -91,39 +102,57 @@ def register(
 
         raise HTTPException(
             status_code=500,
-            detail=str(e)
+            detail="Registration Failed"
         )
 
 
+# =========================
 # LOGIN
+# =========================
+
 @router.post("/login")
 def login(
     user: LoginSchema,
     db: Session = Depends(get_db)
 ):
 
-    db_user = db.query(User).filter(
-        User.email == user.email
-    ).first()
+    try:
 
-    if not db_user:
+        db_user = db.query(User).filter(
+            User.email == user.email
+        ).first()
 
-        raise HTTPException(
-            status_code=400,
-            detail="Invalid Email"
+        if not db_user:
+
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid Email or Password"
+            )
+
+        password = user.password[:72]
+
+        valid_password = pwd_context.verify(
+            password,
+            db_user.password
         )
 
-    if not pwd_context.verify(
-        user.password[:72],
-        db_user.password
-    ):
+        if not valid_password:
+
+            raise HTTPException(
+                status_code=400,
+                detail="Invalid Email or Password"
+            )
+
+        return {
+            "message":
+            "Login Successful"
+        }
+
+    except Exception as e:
+
+        print("LOGIN ERROR:", e)
 
         raise HTTPException(
-            status_code=400,
-            detail="Invalid Password"
+            status_code=500,
+            detail="Login Failed"
         )
-
-    return {
-        "message":
-        "Login Successful"
-    }

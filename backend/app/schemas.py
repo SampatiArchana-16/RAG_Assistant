@@ -1,18 +1,15 @@
-from pydantic import (
-    BaseModel,
-    EmailStr
-)
+from pydantic import BaseModel
 
 
 class RegisterSchema(BaseModel):
 
-    email: EmailStr
+    email: str
 
     password: str
 
 
 class LoginSchema(BaseModel):
 
-    email: EmailStr
+    email: str
 
     password: str

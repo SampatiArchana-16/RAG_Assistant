@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 
 import axios from "axios";
@@ -13,21 +14,30 @@ function Chatbot() {
     const askQuestion = async () => {
 
         if (!file) {
-            alert("Upload PDF");
+
+            alert("Please upload PDF");
+
             return;
         }
 
         if (!question) {
+
+            alert("Please ask question");
+
             return;
         }
 
         const userMessage = {
+
             sender: "user",
+
             text: question
         };
 
         setMessages((prev) => [
+
             ...prev,
+
             userMessage
         ]);
 
@@ -35,7 +45,11 @@ function Chatbot() {
 
             const formData = new FormData();
 
-            formData.append("pdf", file);
+            // IMPORTANT FIX
+            formData.append(
+                "file",
+                file
+            );
 
             formData.append(
                 "question",
@@ -43,17 +57,30 @@ function Chatbot() {
             );
 
             const response = await axios.post(
-                "http://127.0.0.1:8000/chat/ask",
-                formData
+
+                "http://127.0.0.1:8000/chat",
+
+                formData,
+
+                {
+                    headers: {
+                        "Content-Type":
+                            "multipart/form-data"
+                    }
+                }
             );
 
             const botMessage = {
+
                 sender: "bot",
+
                 text: response.data.answer
             };
 
             setMessages((prev) => [
+
                 ...prev,
+
                 botMessage
             ]);
 
@@ -61,13 +88,21 @@ function Chatbot() {
 
         } catch (error) {
 
+            console.log(error);
+
             const botMessage = {
+
                 sender: "bot",
-                text: "Error getting answer"
+
+                text:
+                    error.response?.data?.answer ||
+                    "Backend Error"
             };
 
             setMessages((prev) => [
+
                 ...prev,
+
                 botMessage
             ]);
         }
@@ -95,10 +130,16 @@ function Chatbot() {
 
             <div
                 style={{
+
                     border: "1px solid gray",
+
                     minHeight: "400px",
+
                     padding: "20px",
-                    borderRadius: "10px"
+
+                    borderRadius: "10px",
+
+                    overflowY: "auto"
                 }}
             >
 
@@ -108,7 +149,9 @@ function Chatbot() {
 
                             <div
                                 key={index}
+
                                 style={{
+
                                     textAlign:
                                         msg.sender === "user"
                                         ? "right"
@@ -120,9 +163,13 @@ function Chatbot() {
 
                                 <div
                                     style={{
+
                                         display: "inline-block",
-                                        padding: "10px",
+
+                                        padding: "12px",
+
                                         borderRadius: "10px",
+
                                         background:
                                             msg.sender === "user"
                                             ? "#cfe2ff"
@@ -158,13 +205,17 @@ function Chatbot() {
 
             <input
                 type="text"
-                placeholder="Type message..."
+
+                placeholder="Ask question about PDF..."
+
                 value={question}
+
                 onChange={(e) =>
                     setQuestion(
                         e.target.value
                     )
                 }
+
                 style={{
                     width: "400px",
                     padding: "10px"
@@ -172,7 +223,9 @@ function Chatbot() {
             />
 
             <button
+
                 onClick={askQuestion}
+
                 style={{
                     marginLeft: "10px",
                     padding: "10px"
@@ -186,3 +239,4 @@ function Chatbot() {
 }
 
 export default Chatbot;
+

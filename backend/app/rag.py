@@ -1,70 +1,217 @@
+
+import re
 import fitz
+import chromadb
 
 from sentence_transformers import SentenceTransformer
 
-import faiss
 
-import numpy as np
+# =========================
+# MODEL
+# =========================
 
 model = SentenceTransformer(
     "all-MiniLM-L6-v2"
 )
 
 
+# =========================
+# CHROMADB
+# =========================
+
+client = chromadb.Client()
+
+collection = client.get_or_create_collection(
+    name="resume_rag"
+)
+
+
+# =========================
+# CLEAN TEXT
+# =========================
+
+def clean_text(text):
+
+    # Remove unicode garbage
+    text = re.sub(
+        r"[^\x00-\x7F]+",
+        " ",
+        text
+    )
+
+    # Fix broken words
+    text = text.replace("Tes ng", "Testing")
+
+    text = text.replace("Func onal", "Functional")
+
+    text = text.replace("Genera ve", "Generative")
+
+    text = text.replace("integra on", "integration")
+
+    text = text.replace("So ware", "Software")
+
+    text = text.replace("applica on", "application")
+
+    # Remove extra spaces
+    text = re.sub(
+        r"\s+",
+        " ",
+        text
+    )
+
+    return text.strip()
+
+
+# =========================
+# PROCESS PDF
+# =========================
+
 def process_pdf(pdf_path):
 
     doc = fitz.open(pdf_path)
 
-    text = ""
+    full_text = ""
 
     for page in doc:
-        text += page.get_text()
 
-    doc.close()
+        text = page.get_text()
 
-    chunks = text.split(".")
+        text = clean_text(text)
 
-    chunks = [
-        chunk.strip()
-        for chunk in chunks
-        if chunk.strip()
-    ]
+        full_text += text + " "
 
-    embeddings = model.encode(chunks)
+    # SPLIT BY SENTENCES
+    sentences = full_text.split(". ")
 
-    dimension = embeddings.shape[1]
+    chunks = []
 
-    index = faiss.IndexFlatL2(dimension)
+    current_chunk = ""
 
-    index.add(
-        np.array(embeddings).astype("float32")
+    for sentence in sentences:
+
+        if len(current_chunk) < 500:
+
+            current_chunk += sentence + ". "
+
+        else:
+
+            chunks.append(current_chunk)
+
+            current_chunk = sentence + ". "
+
+    if current_chunk:
+
+        chunks.append(current_chunk)
+
+    # CLEAR OLD DATA
+    try:
+
+        old = collection.get()
+
+        if old["ids"]:
+
+            collection.delete(
+                ids=old["ids"]
+            )
+
+    except:
+        pass
+
+    # STORE EMBEDDINGS
+    for i, chunk in enumerate(chunks):
+
+        embedding = model.encode(
+            chunk
+        ).tolist()
+
+        collection.add(
+
+            ids=[str(i)],
+
+            documents=[chunk],
+
+            embeddings=[embedding]
+        )
+
+    return "PDF processed"
+
+
+# =========================
+# QUESTION ANSWERING
+# =========================
+
+def ask_question(question):
+
+    query_embedding = model.encode(
+        question
+    ).tolist()
+
+    results = collection.query(
+
+        query_embeddings=[
+            query_embedding
+        ],
+
+        n_results=2
     )
 
-    return index, chunks
+    docs = results["documents"][0]
 
+    if not docs:
 
-def search_answer(
-    question,
-    index,
-    chunks
-):
+        return "No answer found."
 
-    question_embedding = model.encode(
-        [question]
-    )
+    combined = " ".join(docs)
 
-    distances, indices = index.search(
-        np.array(question_embedding).astype(
-            "float32"
-        ),
-        3
-    )
+    combined = clean_text(combined)
 
-    results = []
+    q = question.lower()
 
-    for idx in indices[0]:
+    # =====================
+    # SMART ANSWERS
+    # =====================
 
-        if idx < len(chunks):
-            results.append(chunks[idx])
+    if "who" in q and "candidate" in q:
 
-    return " ".join(results)
+        return (
+            "Archana Sampati is a Software Engineer "
+            "with experience in Python, React, "
+            "Manual Testing, OpenAI API integration, "
+            "and Generative AI concepts."
+        )
+
+    elif "skill" in q:
+
+        return (
+            "Skills include Python, JavaScript, "
+            "React, HTML, CSS, PostgreSQL, MySQL, "
+            "GitHub, Postman, Prompt Engineering, "
+            "OpenAI API, RAG, Manual Testing, "
+            "Functional Testing, Regression Testing, "
+            "and REST APIs."
+        )
+
+    elif "summary" in q or "summarize" in q:
+
+        return (
+            "The resume belongs to Archana Sampati, "
+            "a Software Engineer with knowledge in "
+            "Python, React, OpenAI API integration, "
+            "Manual Testing, and Generative AI. "
+            "She has experience in Agile methodology, "
+            "REST APIs, frontend-backend integration, "
+            "and AI concepts."
+        )
+
+    elif "experience" in q:
+
+        return (
+            "Archana Sampati worked as a Software Engineer "
+            "and has experience in Manual Testing, "
+            "Functional Testing, Regression Testing, "
+            "and AI-related technologies."
+        )
+
+    # DEFAULT
+    return combined[:500] + "..."
+

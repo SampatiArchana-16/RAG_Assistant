@@ -1,8 +1,4 @@
-from sqlalchemy import (
-    Column,
-    Integer,
-    String
-)
+from sqlalchemy import Column, Integer, String
 
 from app.database import Base
 
@@ -20,10 +16,7 @@ class User(Base):
     email = Column(
         String,
         unique=True,
-        nullable=False
+        index=True
     )
 
-    password = Column(
-        String,
-        nullable=False
-    )
+    password = Column(String)
