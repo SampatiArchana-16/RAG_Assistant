@@ -9,7 +9,7 @@ import shutil
 
 from app.rag import (
     process_pdf,
-    ask_question
+    search_answer
 )
 
 router = APIRouter()
@@ -39,7 +39,7 @@ async def chat_with_pdf(
         process_pdf(file_location)
 
         # GET ANSWER
-        answer = ask_question(question)
+        answer = search_answer(question)
 
         return {
             "answer": answer
