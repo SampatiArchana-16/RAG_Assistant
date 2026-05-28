@@ -5,7 +5,4 @@ psycopg2-binary
 passlib[bcrypt]
 python-multipart
 email-validator
-chromadb
-sentence-transformers
 pymupdf
-torch
