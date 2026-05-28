@@ -58,7 +58,7 @@ function Chatbot() {
 
             const response = await axios.post(
 
-                "http://127.0.0.1:8000/chat",
+                "https://rag-backend-0bjx.onrender.com/chat",
 
                 formData,
 
