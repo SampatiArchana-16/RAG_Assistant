@@ -1,23 +1,23 @@
 from sqlalchemy import create_engine
 
-from sqlalchemy.orm import (
-    declarative_base,
-    sessionmaker
-)
+from sqlalchemy.ext.declarative import declarative_base
 
-DATABASE_URL = (
-    "postgresql://postgres:1234@localhost:5432/react_auth_db"
-)
+from sqlalchemy.orm import sessionmaker
+
+
+DATABASE_URL = "postgresql://neondb_owner:npg_2OrhU5zlCKPG@ep-winter-queen-aq1dr6ta-pooler.c-8.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
 
 engine = create_engine(
-    DATABASE_URL,
-    echo=True
+    DATABASE_URL
 )
+
 
 SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
     bind=engine
 )
+
 
 Base = declarative_base()
