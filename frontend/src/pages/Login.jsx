@@ -15,13 +15,15 @@ function Login() {
 
     try {
 
-      await axios.post(
+      const response = await axios.post(
         "https://rag-backend-0bjx.onrender.com/auth/login",
         {
           email,
           password
         }
       );
+
+      console.log("LOGIN RESPONSE:", response.data);
 
       alert("Login Successful");
 

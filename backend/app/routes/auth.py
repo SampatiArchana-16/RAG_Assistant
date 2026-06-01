@@ -89,11 +89,10 @@ def login(
             detail="Invalid Email or Password"
         )
 
-    if not pwd_context.verify(
-        user.password,
-        db_user.password
+    if not bcrypt.checkpw(
+        user.password.encode("utf-8"),
+        db_user.password.encode("utf-8")
     ):
-
         raise HTTPException(
             status_code=401,
             detail="Invalid Email or Password"
