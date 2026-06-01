@@ -53,8 +53,10 @@ def register(
         )
 
     # HASH PASSWORD
+    password = user.password[:72]
+
     hashed_password = pwd_context.hash(
-        user.password
+    password
     )
 
     new_user = User(
