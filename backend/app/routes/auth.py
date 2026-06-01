@@ -58,7 +58,7 @@ def register(
     )
 
     new_user = User(
-        username=user.username,
+        
         email=user.email,
         password=hashed_password
     )

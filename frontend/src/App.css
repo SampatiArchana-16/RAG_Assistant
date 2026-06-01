@@ -1,0 +1,162 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
+}
+
+body {
+  background: #f4f7fc;
+}
+
+/* NAVBAR */
+
+.navbar {
+  background: #0f172a;
+  color: white;
+  height: 70px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  padding: 0 40px;
+}
+
+.logo {
+  font-size: 32px;
+  font-weight: bold;
+}
+
+.nav-links {
+  display: flex;
+  gap: 30px;
+}
+
+.nav-links a {
+  color: white;
+  text-decoration: none;
+}
+
+/* HOME */
+
+.home {
+  height: calc(100vh - 70px);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.hero-card {
+  width: 700px;
+  background: white;
+
+  padding: 50px;
+
+  border-radius: 20px;
+
+  text-align: center;
+
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.hero-card h1 {
+  font-size: 50px;
+  margin-bottom: 20px;
+}
+
+.hero-card p {
+  font-size: 20px;
+  color: #475569;
+}
+
+.home-buttons {
+  margin-top: 30px;
+}
+
+.btn-primary {
+  background: #2563eb;
+  color: white;
+  border: none;
+
+  padding: 12px 25px;
+  border-radius: 10px;
+
+  cursor: pointer;
+}
+
+.btn-secondary {
+  background: white;
+  color: #2563eb;
+
+  border: 2px solid #2563eb;
+
+  padding: 12px 25px;
+
+  border-radius: 10px;
+
+  margin-left: 15px;
+
+  cursor: pointer;
+}
+
+/* REGISTER + LOGIN */
+
+.auth-page {
+  height: calc(100vh - 70px);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.auth-card {
+  width: 400px;
+
+  background: white;
+
+  padding: 40px;
+
+  border-radius: 15px;
+
+  box-shadow: 0 5px 25px rgba(0,0,0,0.1);
+}
+
+.auth-card h2 {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.auth-card input {
+  width: 100%;
+
+  padding: 12px;
+
+  margin-bottom: 15px;
+
+  border: 1px solid #cbd5e1;
+
+  border-radius: 8px;
+}
+
+.auth-btn {
+  width: 100%;
+
+  padding: 12px;
+
+  border: none;
+
+  border-radius: 8px;
+
+  background: #2563eb;
+
+  color: white;
+
+  cursor: pointer;
+}
+
+.auth-card p {
+  text-align: center;
+  margin-top: 15px;
+}

@@ -54,58 +54,43 @@ def register(
     user: RegisterSchema,
     db: Session = Depends(get_db)
 ):
-
     try:
 
-        # CHECK EXISTING EMAIL
         existing_user = db.query(User).filter(
             User.email == user.email
         ).first()
 
         if existing_user:
-
             raise HTTPException(
                 status_code=400,
                 detail="Email already exists"
             )
 
-        # LIMIT PASSWORD LENGTH
-        password = user.password[:72]
-
-        # HASH PASSWORD
         hashed_password = pwd_context.hash(
-            password
+            user.password
         )
 
-        # CREATE USER
         new_user = User(
-
             email=user.email,
-
             password=hashed_password
         )
 
         db.add(new_user)
-
         db.commit()
-
         db.refresh(new_user)
 
         return {
-            "message":
-            "Registration Successful"
+            "message": "Registration Successful"
         }
 
     except Exception as e:
 
-        print("REGISTER ERROR:", e)
+        print("REGISTER ERROR:", str(e))
 
         raise HTTPException(
             status_code=500,
-            detail="Registration Failed"
+            detail=str(e)
         )
-
-
 # =========================
 # LOGIN
 # =========================
