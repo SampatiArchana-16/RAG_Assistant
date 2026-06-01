@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from sqlalchemy.orm import Session
 
-from passlib.context import CryptContext
+import bcrypt
 
 from app.database import SessionLocal
 
@@ -18,10 +18,6 @@ router = APIRouter(
     tags=["Auth"]
 )
 
-pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto"
-)
 
 
 def get_db():
@@ -53,11 +49,10 @@ def register(
         )
 
     # HASH PASSWORD
-    password = user.password[:72]
-
-    hashed_password = pwd_context.hash(
-    password
-    )
+    hashed_password = bcrypt.hashpw(
+        user.password.encode("utf-8"),
+        bcrypt.gensalt()
+    ).decode("utf-8")
 
     new_user = User(
         
