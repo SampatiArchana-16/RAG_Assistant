@@ -5,6 +5,8 @@ import {
   Route
 } from "react-router-dom";
 
+import { Navigate } from "react-router-dom";
+
 import Navbar from "./components/Navbar";
 
 import Home from "./pages/Home";
@@ -13,6 +15,18 @@ import Login from "./pages/Login";
 import Chatbot from "./pages/Chatbot";
 
 import "./App.css";
+
+function ProtectedRoute({
+  children
+}) {
+
+  const token =
+    localStorage.getItem("token");
+
+  return token
+    ? children
+    : <Navigate to="/login" />;
+}
 
 function App() {
 
@@ -41,7 +55,11 @@ function App() {
 
         <Route
           path="/chatbot"
-          element={<Chatbot />}
+          element={
+            <ProtectedRoute>
+              <Chatbot />
+            </ProtectedRoute>
+          }
         />
 
       </Routes>

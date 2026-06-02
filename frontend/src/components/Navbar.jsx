@@ -1,6 +1,23 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Navbar() {
+
+  const navigate = useNavigate();
+
+  const token =
+    localStorage.getItem("token");
+
+  const email =
+    localStorage.getItem("email");
+
+  const logout = () => {
+
+    localStorage.removeItem("token");
+
+    localStorage.removeItem("email");
+
+    navigate("/login");
+  };
 
   return (
 
@@ -16,18 +33,43 @@ function Navbar() {
           Home
         </Link>
 
-        <Link to="/register">
-          Register
-        </Link>
+        {
+          !token && (
+            <>
+              <Link to="/register">
+                Register
+              </Link>
 
-        <Link to="/login">
-          Login
-        </Link>
+              <Link to="/login">
+                Login
+              </Link>
+            </>
+          )
+        }
+
+        {
+          token && (
+            <>
+              <span>
+                {email}
+              </span>
+
+              <Link to="/chatbot">
+                Chatbot
+              </Link>
+
+              <button
+                onClick={logout}
+              >
+                Logout
+              </button>
+            </>
+          )
+        }
 
       </div>
 
     </nav>
-
   );
 }
 

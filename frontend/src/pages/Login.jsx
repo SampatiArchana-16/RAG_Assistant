@@ -5,83 +5,90 @@ import axios from "axios";
 
 function Login() {
 
-  const navigate = useNavigate();
+    const navigate = useNavigate();
 
-  const [email, setEmail] = useState("");
+    const [email, setEmail] = useState("");
 
-  const [password, setPassword] = useState("");
+    const [password, setPassword] = useState("");
 
-  const loginUser = async () => {
+    const loginUser = async () => {
 
-    try {
+        try {
 
-      const response = await axios.post(
-        "https://rag-backend-0bjx.onrender.com/auth/login",
-        {
-          email,
-          password
+            const response = await axios.post(
+                "https://rag-backend-0bjx.onrender.com/auth/login",
+                {
+                    email,
+                    password
+                }
+            );
+
+            localStorage.setItem(
+                "token",
+                response.data.access_token
+            );
+
+            localStorage.setItem(
+                "email",
+                email
+            );
+
+            alert("Login Successful");
+
+            navigate("/chatbot");
+        } catch (error) {
+
+            alert(
+                error.response?.data?.detail ||
+                "Invalid Email or Password"
+            );
         }
-      );
+    };
 
-      console.log("LOGIN RESPONSE:", response.data);
+    return (
 
-      alert("Login Successful");
+        <div className="auth-page">
 
-      navigate("/chatbot");
+            <div className="auth-card">
 
-    } catch (error) {
+                <h2>Welcome Back</h2>
 
-      alert(
-        error.response?.data?.detail ||
-        "Invalid Email or Password"
-      );
-    }
-  };
+                <input
+                    type="email"
+                    placeholder="Enter Email"
+                    value={email}
+                    onChange={(e) =>
+                        setEmail(e.target.value)
+                    }
+                />
 
-  return (
+                <input
+                    type="password"
+                    placeholder="Enter Password"
+                    value={password}
+                    onChange={(e) =>
+                        setPassword(e.target.value)
+                    }
+                />
 
-    <div className="auth-page">
+                <button
+                    className="auth-btn"
+                    onClick={loginUser}
+                >
+                    Login
+                </button>
 
-      <div className="auth-card">
+                <p>
+                    New User?
+                    <Link to="/register">
+                        Register
+                    </Link>
+                </p>
 
-        <h2>Welcome Back</h2>
+            </div>
 
-        <input
-          type="email"
-          placeholder="Enter Email"
-          value={email}
-          onChange={(e) =>
-            setEmail(e.target.value)
-          }
-        />
-
-        <input
-          type="password"
-          placeholder="Enter Password"
-          value={password}
-          onChange={(e) =>
-            setPassword(e.target.value)
-          }
-        />
-
-        <button
-          className="auth-btn"
-          onClick={loginUser}
-        >
-          Login
-        </button>
-
-        <p>
-          New User?
-          <Link to="/register">
-            Register
-          </Link>
-        </p>
-
-      </div>
-
-    </div>
-  );
+        </div>
+    );
 }
 
 export default Login;

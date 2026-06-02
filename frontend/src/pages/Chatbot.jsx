@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import axios from "axios";
 
@@ -10,6 +10,34 @@ function Chatbot() {
     const [question, setQuestion] = useState("");
 
     const [messages, setMessages] = useState([]);
+    const [history, setHistory] = useState([]);
+
+    useEffect(() => {
+
+        loadHistory();
+
+    }, []);
+
+    const loadHistory = async () => {
+
+        try {
+
+            const response =
+                await axios.get(
+                    "https://rag-backend-0bjx.onrender.com/history"
+                );
+
+            setHistory(
+                response.data
+            );
+
+        } catch (error) {
+
+            console.log(error);
+        }
+    };
+
+
 
     const askQuestion = async () => {
 
@@ -108,137 +136,191 @@ function Chatbot() {
         }
     };
 
+
+
     return (
 
-        <div style={{ padding: "20px" }}>
+        <div
+            style={{
+                display: "flex",
+                height: "100vh"
+            }}
+        >
 
-            <h1>
-                AI PDF Chatbot 🤖
-            </h1>
-
-            <input
-                type="file"
-                accept=".pdf"
-                onChange={(e) =>
-                    setFile(
-                        e.target.files[0]
-                    )
-                }
-            />
-
-            <br /><br />
+            {/* Sidebar */}
 
             <div
                 style={{
-
-                    border: "1px solid gray",
-
-                    minHeight: "400px",
-
-                    padding: "20px",
-
-                    borderRadius: "10px",
-
+                    width: "250px",
+                    borderRight: "1px solid #ccc",
+                    padding: "15px",
                     overflowY: "auto"
                 }}
             >
 
+                <h3>Chat History</h3>
+
                 {
-                    messages.map(
-                        (msg, index) => (
+                    history.map(
+                        (chat, index) => (
 
                             <div
                                 key={index}
 
                                 style={{
-
-                                    textAlign:
-                                        msg.sender === "user"
-                                        ? "right"
-                                        : "left",
-
-                                    marginBottom: "20px"
+                                    padding: "10px",
+                                    marginBottom: "10px",
+                                    background: "#f2f2f2",
+                                    borderRadius: "5px"
                                 }}
                             >
-
-                                <div
-                                    style={{
-
-                                        display: "inline-block",
-
-                                        padding: "12px",
-
-                                        borderRadius: "10px",
-
-                                        background:
-                                            msg.sender === "user"
-                                            ? "#cfe2ff"
-                                            : "#e2e2e2",
-
-                                        maxWidth: "70%"
-                                    }}
-                                >
-
-                                    <b>
-                                        {
-                                            msg.sender === "user"
-                                            ? "You"
-                                            : "Bot"
-                                        }
-                                        :
-                                    </b>
-
-                                    <br />
-
-                                    {msg.text}
-
-                                </div>
-
+                                {chat.question}
                             </div>
+
                         )
                     )
                 }
 
             </div>
 
-            <br />
+            {/* Main Chat */}
 
-            <input
-                type="text"
-
-                placeholder="Ask question about PDF..."
-
-                value={question}
-
-                onChange={(e) =>
-                    setQuestion(
-                        e.target.value
-                    )
-                }
-
+            <div
                 style={{
-                    width: "400px",
-                    padding: "10px"
-                }}
-            />
-
-            <button
-
-                onClick={askQuestion}
-
-                style={{
-                    marginLeft: "10px",
-                    padding: "10px"
+                    flex: 1,
+                    padding: "20px"
                 }}
             >
-                Send
-            </button>
 
+                <h1>
+                    AI PDF Chatbot 🤖
+                </h1>
+
+                <input
+                    type="file"
+                    accept=".pdf"
+                    onChange={(e) =>
+                        setFile(
+                            e.target.files[0]
+                        )
+                    }
+                />
+
+                <br /><br />
+
+                <div
+                    style={{
+
+                        border: "1px solid gray",
+
+                        minHeight: "400px",
+
+                        padding: "20px",
+
+                        borderRadius: "10px",
+
+                        overflowY: "auto"
+                    }}
+                >
+
+                    {
+                        messages.map(
+                            (msg, index) => (
+
+                                <div
+                                    key={index}
+
+                                    style={{
+
+                                        textAlign:
+                                            msg.sender === "user"
+                                                ? "right"
+                                                : "left",
+
+                                        marginBottom: "20px"
+                                    }}
+                                >
+
+                                    <div
+                                        style={{
+
+                                            display: "inline-block",
+
+                                            padding: "12px",
+
+                                            borderRadius: "10px",
+
+                                            background:
+                                                msg.sender === "user"
+                                                    ? "#cfe2ff"
+                                                    : "#e2e2e2",
+
+                                            maxWidth: "70%"
+                                        }}
+                                    >
+
+                                        <b>
+                                            {
+                                                msg.sender === "user"
+                                                    ? "You"
+                                                    : "Bot"
+                                            }
+                                            :
+                                        </b>
+
+                                        <br />
+
+                                        {msg.text}
+
+                                    </div>
+
+                                </div>
+                            )
+                        )
+                    }
+
+                </div>
+
+                <br />
+
+                <input
+                    type="text"
+
+                    placeholder="Ask question about PDF..."
+
+                    value={question}
+
+                    onChange={(e) =>
+                        setQuestion(
+                            e.target.value
+                        )
+                    }
+
+                    style={{
+                        width: "400px",
+                        padding: "10px"
+                    }}
+                />
+
+                <button
+
+                    onClick={askQuestion}
+
+                    style={{
+                        marginLeft: "10px",
+                        padding: "10px"
+                    }}
+                >
+                    Send
+                </button>
+
+
+            </div>
         </div>
+
     );
 }
 
+
 export default Chatbot;
-
-
 

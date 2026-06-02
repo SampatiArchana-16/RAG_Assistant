@@ -1,6 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from sqlalchemy.orm import Session
+from jose import jwt
+from datetime import datetime, timedelta
 
 import bcrypt
 
@@ -18,6 +20,12 @@ router = APIRouter(
     tags=["Auth"]
 )
 
+SECRET_KEY = "my_super_secret_key"
+
+ALGORITHM = "HS256"
+
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
 
 
 def get_db():
@@ -30,6 +38,26 @@ def get_db():
     finally:
         db.close()
 
+
+def create_access_token(data: dict):
+
+    to_encode = data.copy()
+
+    expire = datetime.utcnow() + timedelta(
+        minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+    )
+
+    to_encode.update({
+        "exp": expire
+    })
+
+    encoded_jwt = jwt.encode(
+        to_encode,
+        SECRET_KEY,
+        algorithm=ALGORITHM
+    )
+
+    return encoded_jwt
 
 @router.post("/register")
 def register(
@@ -98,7 +126,13 @@ def login(
             detail="Invalid Email or Password"
         )
 
-    return {
-        "message":
-        "Login Successful"
+    token = create_access_token(
+    {
+        "sub": db_user.email
     }
+)
+
+    return {
+        "access_token": token,
+        "token_type": "bearer"
+}
