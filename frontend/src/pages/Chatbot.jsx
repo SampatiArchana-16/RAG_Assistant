@@ -193,7 +193,7 @@ function Chatbot() {
                                 style={{
                                     padding: "10px",
                                     marginBottom: "10px",
-                                    background: "#f2f2f2",
+                                    background: "#e8dcdc",
                                     borderRadius: "5px",
                                     cursor: "pointer"
                                 }}
