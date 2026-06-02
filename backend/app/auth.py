@@ -1,8 +1,13 @@
+import token
+
 from fastapi import APIRouter, Depends, HTTPException
 
 from sqlalchemy.orm import Session
 
 from passlib.context import CryptContext
+
+from jose import jwt
+from datetime import datetime, timedelta
 
 from app.database import SessionLocal
 
@@ -18,6 +23,30 @@ router = APIRouter(
     prefix="/auth",
     tags=["Authentication"]
 )
+
+SECRET_KEY = "your_secret_key_123"
+
+ALGORITHM = "HS256"
+
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
+def create_access_token(data: dict):
+
+    to_encode = data.copy()
+
+    expire = datetime.utcnow() + timedelta(
+        minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+    )
+
+    to_encode.update({
+        "exp": expire
+    })
+
+    return jwt.encode(
+        to_encode,
+        SECRET_KEY,
+        algorithm=ALGORITHM
+    )
 
 
 # =========================
@@ -54,58 +83,45 @@ def register(
     user: RegisterSchema,
     db: Session = Depends(get_db)
 ):
-
     try:
 
-        # CHECK EXISTING EMAIL
         existing_user = db.query(User).filter(
             User.email == user.email
         ).first()
 
         if existing_user:
-
             raise HTTPException(
                 status_code=400,
                 detail="Email already exists"
             )
 
-        # LIMIT PASSWORD LENGTH
         password = user.password[:72]
 
-        # HASH PASSWORD
         hashed_password = pwd_context.hash(
-            password
+        password
         )
 
-        # CREATE USER
         new_user = User(
-
             email=user.email,
-
             password=hashed_password
         )
 
         db.add(new_user)
-
         db.commit()
-
         db.refresh(new_user)
 
         return {
-            "message":
-            "Registration Successful"
+            "message": "Registration Successful"
         }
 
     except Exception as e:
 
-        print("REGISTER ERROR:", e)
+        print("REGISTER ERROR:", str(e))
 
         raise HTTPException(
             status_code=500,
-            detail="Registration Failed"
+            detail=str(e)
         )
-
-
 # =========================
 # LOGIN
 # =========================
@@ -143,11 +159,16 @@ def login(
                 detail="Invalid Email or Password"
             )
 
-        return {
-            "message":
-            "Login Successful"
+        token = create_access_token(
+        {
+            "sub": db_user.email
         }
+        )
 
+        return {
+            "access_token": token,
+            "token_type": "bearer"
+        }
     except Exception as e:
 
         print("LOGIN ERROR:", e)

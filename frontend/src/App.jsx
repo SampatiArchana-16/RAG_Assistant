@@ -1,16 +1,32 @@
+
 import {
   BrowserRouter,
   Routes,
   Route
 } from "react-router-dom";
 
+import { Navigate } from "react-router-dom";
+
+import Navbar from "./components/Navbar";
+
 import Home from "./pages/Home";
-
 import Register from "./pages/Register";
-
 import Login from "./pages/Login";
-
 import Chatbot from "./pages/Chatbot";
+
+import "./App.css";
+
+function ProtectedRoute({
+  children
+}) {
+
+  const token =
+    localStorage.getItem("token");
+
+  return token
+    ? children
+    : <Navigate to="/login" />;
+}
 
 function App() {
 
@@ -18,40 +34,40 @@ function App() {
 
     <BrowserRouter>
 
-      <Routes>
+      <Navbar />
 
-        {/* HOME */}
+      <Routes>
 
         <Route
           path="/"
           element={<Home />}
         />
 
-        {/* REGISTER */}
-
         <Route
           path="/register"
           element={<Register />}
         />
-
-        {/* LOGIN */}
 
         <Route
           path="/login"
           element={<Login />}
         />
 
-        {/* CHATBOT */}
-
         <Route
           path="/chatbot"
-          element={<Chatbot />}
+          element={
+            <ProtectedRoute>
+              <Chatbot />
+            </ProtectedRoute>
+          }
         />
 
       </Routes>
 
     </BrowserRouter>
+
   );
 }
 
 export default App;
+

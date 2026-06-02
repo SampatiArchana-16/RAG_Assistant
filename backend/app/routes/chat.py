@@ -5,6 +5,9 @@ from fastapi import (
     Form
 )
 
+from app.database import SessionLocal
+from app.models import ChatHistory
+
 import shutil
 
 from app.rag import (
@@ -20,7 +23,9 @@ async def chat_with_pdf(
 
     file: UploadFile = File(...),
 
-    question: str = Form(...)
+    question: str = Form(...),
+
+    email: str = Form(...)
 ):
 
     try:
@@ -41,6 +46,20 @@ async def chat_with_pdf(
         # GET ANSWER
         answer = search_answer(question)
 
+        db = SessionLocal()
+
+        chat = ChatHistory(
+        user_email=email,
+        question=question,
+        answer=answer
+    )
+
+        db.add(chat)
+
+        db.commit()
+
+        db.close()
+
         return {
             "answer": answer
         }
@@ -52,3 +71,28 @@ async def chat_with_pdf(
         return {
             "answer": str(e)
         }
+    
+
+@router.get("/history/{email}")
+def get_history(email: str):
+
+    db = SessionLocal()
+
+    chats = db.query(
+        ChatHistory
+    ).filter(
+        ChatHistory.user_email == email
+    ).all()
+
+    result = []
+
+    for chat in chats:
+
+        result.append({
+            "question": chat.question,
+            "answer": chat.answer
+        })
+
+    db.close()
+
+    return result

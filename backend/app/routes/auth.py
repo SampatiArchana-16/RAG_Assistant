@@ -1,8 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 
 from sqlalchemy.orm import Session
+from jose import jwt
+from datetime import datetime, timedelta
 
-from passlib.context import CryptContext
+import bcrypt
 
 from app.database import SessionLocal
 
@@ -18,10 +20,12 @@ router = APIRouter(
     tags=["Auth"]
 )
 
-pwd_context = CryptContext(
-    schemes=["bcrypt"],
-    deprecated="auto"
-)
+SECRET_KEY = "my_super_secret_key"
+
+ALGORITHM = "HS256"
+
+ACCESS_TOKEN_EXPIRE_MINUTES = 60
+
 
 
 def get_db():
@@ -34,6 +38,26 @@ def get_db():
     finally:
         db.close()
 
+
+def create_access_token(data: dict):
+
+    to_encode = data.copy()
+
+    expire = datetime.utcnow() + timedelta(
+        minutes=ACCESS_TOKEN_EXPIRE_MINUTES
+    )
+
+    to_encode.update({
+        "exp": expire
+    })
+
+    encoded_jwt = jwt.encode(
+        to_encode,
+        SECRET_KEY,
+        algorithm=ALGORITHM
+    )
+
+    return encoded_jwt
 
 @router.post("/register")
 def register(
@@ -53,12 +77,13 @@ def register(
         )
 
     # HASH PASSWORD
-    hashed_password = pwd_context.hash(
-        user.password
-    )
+    hashed_password = bcrypt.hashpw(
+        user.password.encode("utf-8"),
+        bcrypt.gensalt()
+    ).decode("utf-8")
 
     new_user = User(
-        username=user.username,
+        
         email=user.email,
         password=hashed_password
     )
@@ -92,17 +117,22 @@ def login(
             detail="Invalid Email or Password"
         )
 
-    if not pwd_context.verify(
-        user.password,
-        db_user.password
+    if not bcrypt.checkpw(
+        user.password.encode("utf-8"),
+        db_user.password.encode("utf-8")
     ):
-
         raise HTTPException(
             status_code=401,
             detail="Invalid Email or Password"
         )
 
-    return {
-        "message":
-        "Login Successful"
+    token = create_access_token(
+    {
+        "sub": db_user.email
     }
+)
+
+    return {
+        "access_token": token,
+        "token_type": "bearer"
+}
