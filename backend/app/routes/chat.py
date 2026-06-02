@@ -23,7 +23,9 @@ async def chat_with_pdf(
 
     file: UploadFile = File(...),
 
-    question: str = Form(...)
+    question: str = Form(...),
+
+    email: str = Form(...)
 ):
 
     try:
@@ -47,10 +49,10 @@ async def chat_with_pdf(
         db = SessionLocal()
 
         chat = ChatHistory(
-            user_email="temporary",
-            question=question,
-            answer=answer
-        )
+        user_email=email,
+        question=question,
+        answer=answer
+    )
 
         db.add(chat)
 
@@ -71,13 +73,15 @@ async def chat_with_pdf(
         }
     
 
-@router.get("/history")
-def get_history():
+@router.get("/history/{email}")
+def get_history(email: str):
 
     db = SessionLocal()
 
     chats = db.query(
         ChatHistory
+    ).filter(
+        ChatHistory.user_email == email
     ).all()
 
     result = []
