@@ -23,7 +23,7 @@ function Register() {
                 }
             );
 
-            alert(response.data.message);
+            alert("Registration Successful");
 
             navigate("/login");
 
@@ -36,7 +36,8 @@ function Register() {
             console.log("DATA:", error.response?.data);
 
             alert(
-                JSON.stringify(error.response?.data)
+                error.response?.data?.detail ||
+                "Registration Failed"
             );
         }
     };
